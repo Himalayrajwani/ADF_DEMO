@@ -1,0 +1,9 @@
+{
+	"name": "DemoADFHimalay",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "dbafd730-2389-419d-b5ff-56d8808456db",
+		"tenantId": "fbcf0516-a2b8-44ca-a367-06172ff79fda"
+	}
+}
