@@ -10,7 +10,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "apple1_20250824.csv",
 				"folderPath": "inbound",
 				"fileSystem": "devcontainer"
 			},
