@@ -5,6 +5,8 @@
 			{
 				"name": "Copy data1",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -47,18 +49,28 @@
 				]
 			},
 			{
-				"name": "Set variable1",
+				"name": "getfilename",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
+				},
+				"typeProperties": {
+					"variableName": "filename",
+					"value": {
+						"value": "@utcNow()",
+						"type": "Expression"
+					}
 				}
 			}
 		],
-		"parameters": {
+		"variables": {
+			"file_name": {
+				"type": "String"
+			},
 			"filename": {
-				"type": "string"
+				"type": "String"
 			}
 		},
 		"annotations": []
