@@ -108,7 +108,13 @@
 							"inputs": [
 								{
 									"referenceName": "ds_source_get_meta_data_activty",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@variables('src_file_name')",
+											"type": "Expression"
+										}
+									}
 								}
 							],
 							"outputs": [
