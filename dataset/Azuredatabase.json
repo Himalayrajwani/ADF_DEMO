@@ -1,0 +1,12 @@
+{
+	"name": "Azuredatabase",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Lnk_Service_database",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}

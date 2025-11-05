@@ -134,6 +134,150 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "getingestiondate",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('table_type'), 'fullsync')",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "getquery1",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "query",
+											"value": {
+												"value": "@concat('select * from himalayschemabatch64.',\nvariables('table_name'),' where ',variables('incremental_col'),\n'=','''',variables('ingestion_dt'),'''')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "gettargetfilepath",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "getquery1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "targetfilename",
+											"value": {
+												"value": "@concat(variables('table_name'),'.json')",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "getquery",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "query",
+											"value": {
+												"value": "@concat('select * from himalayschemabatch64.',variables('table_name'))",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "If Condition1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@variables('query')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "Azuredatabase",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Azuregen2json",
+									"type": "DatasetReference",
+									"parameters": {
+										"foldername": {
+											"value": "@variables('table_name')",
+											"type": "Expression"
+										},
+										"targetname": {
+											"value": "@variables('targetfilename')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
 						}
 					]
 				}
