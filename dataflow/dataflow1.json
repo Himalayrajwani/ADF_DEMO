@@ -1,0 +1,98 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_dataflow_source",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sink_dataflow",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "cast1"
+				},
+				{
+					"name": "filter1"
+				},
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          empid as string,",
+				"          firstname as string,",
+				"          lastname as string,",
+				"          age as string,",
+				"          salary as string,",
+				"          gender as string,",
+				"          deptno as string,",
+				"          state as string,",
+				"          mobilenumber as string,",
+				"          mail as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source1",
+				"source1 select(mapColumn(",
+				"          empid,",
+				"          firstname,",
+				"          lastname,",
+				"          age,",
+				"          salary,",
+				"          gender,",
+				"          deptno,",
+				"          state",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 derive(Full_name = concat(firstname,' ',lastname)) ~> derivedColumn1",
+				"cast1 aggregate(groupBy(deptno),",
+				"     total_salary = sum(salary)) ~> aggregate1",
+				"derivedColumn1 cast(output(",
+				"          salary as integer '000'",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"aggregate1 filter(total_salary>8000) ~> filter1",
+				"filter1 split(total_salary<10000,",
+				"     disjoint: false) ~> split1@(deptsmaller10000, deptgreater10000)",
+				"split1@deptgreater10000 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as string,",
+				"          code as string",
+				"     ),",
+				"     partitionFileNames:['dept_data'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

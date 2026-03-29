@@ -1,0 +1,18 @@
+{
+	"name": "ds_sink_get_meta_data_activity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "sink_get_metadataactivity",
+				"fileSystem": "devcontainer"
+			}
+		}
+	}
+}

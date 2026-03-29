@@ -1,0 +1,141 @@
+{
+	"name": "copy_activity_using_dynamic_paramter",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_currentimestamp",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "filename",
+					"value": {
+						"value": "utcNow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "current_timestamp",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "get_currentimestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "filenamesubstring",
+					"value": {
+						"value": "@formatDateTime(variables('filename'),'ddMMyyyy')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "full_name_with_current_timestamp",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "current_timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Full_File_Name",
+					"value": {
+						"value": "@concat('orders_',variables('filenamesubstring'),'.txt')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "full_name_with_current_timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_source_copy_activity8",
+						"type": "DatasetReference",
+						"parameters": {
+							"file_name": {
+								"value": "@variables('Full_File_Name')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_sink_copy_activity8",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"variables": {
+			"filename": {
+				"type": "String"
+			},
+			"filenamesubstring": {
+				"type": "String"
+			},
+			"Full_File_Name": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

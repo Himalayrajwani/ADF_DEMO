@@ -1,0 +1,18 @@
+{
+	"name": "ds_source_get_meta_data_activty",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "get_meta_data_folder",
+				"fileSystem": "devcontainer"
+			}
+		}
+	}
+}

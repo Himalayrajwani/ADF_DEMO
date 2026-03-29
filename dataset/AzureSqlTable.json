@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Azure_Lnk_database",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "himalayschemabatch64",
+			"table": "cntrl_tbl"
+		}
+	}
+}

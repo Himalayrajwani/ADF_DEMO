@@ -1,0 +1,297 @@
+{
+	"name": "pipeline4",
+	"properties": {
+		"activities": [
+			{
+				"name": "get_table_data",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "get_table_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get_table_data').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "get_table_name",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Table_name",
+								"value": {
+									"value": "@item().table_name",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "get_table_type",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get_table_name",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Table_type",
+								"value": {
+									"value": "@item().table_type",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "get_incremental_col",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get_table_type",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Ingestion_dt",
+								"value": {
+									"value": "@item().incremental_col",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "get_ingestion_date",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get_incremental_col",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "Ingestion_dt",
+								"value": {
+									"value": "@item().ingestion_dt",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "get_ingestion_date",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(variables('Table_type'),'fullsync')",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "guery1",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "query",
+											"value": {
+												"value": "@concat('select * from himalayschemabatch64.',\nvariables('Table_name'),' where ',variables('incremental_col'),\n'=','''',variables('Ingestion_dt'),'''')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "targetfilepath1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "guery1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "targettablename",
+											"value": {
+												"value": "@concat(variables('Table_name'),'_',formatDateTime(variables('Ingestion_dt'),'ddMMyyyy'),'.json')",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "guery",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "query",
+											"value": {
+												"value": "@concat('select * from himalayschemabatch64.',variables('Table_name'))",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "targetfilepath",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "guery",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "targettablename",
+											"value": {
+												"value": "@concat(variables('Table_name'),'.json')",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "If Condition1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "@variables('query')",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"enableStaging": false
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"Table_name": {
+				"type": "String"
+			},
+			"Table_type": {
+				"type": "String"
+			},
+			"Ingestion_dt": {
+				"type": "String"
+			},
+			"incremental_col": {
+				"type": "String"
+			},
+			"query": {
+				"type": "String"
+			},
+			"targettablename": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
